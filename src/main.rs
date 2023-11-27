@@ -179,14 +179,22 @@ impl Snake {
             self.direction = 'd'
         }
 
-        if self.direction == 'l'  {
-            self.x -= self.xy_diff as f32 * speed_boost;
-        } else if self.direction == 'r'  {
-            self.x += self.xy_diff as f32 * speed_boost;
-        } else if self.direction == 'u'  {
-            self.y -= self.xy_diff as f32 * speed_boost;
-        } else if self.direction == 'd'  {
-            self.y += self.xy_diff as f32 * speed_boost;
+        match self.direction {
+            'l' => {
+                self.x -= self.xy_diff as f32 * speed_boost
+            }
+            'r' => {
+                self.x += self.xy_diff as f32 * speed_boost
+            }
+            'd' => {
+                self.y -= self.xy_diff as f32 * speed_boost
+            }
+            'u' => {
+                self.y += self.xy_diff as f32 * speed_boost
+            }
+            _ => {
+                panic!("What the fuck")
+            }
         }
 
         if self.x > macroquad::prelude::screen_width() {
