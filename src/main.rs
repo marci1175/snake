@@ -67,8 +67,8 @@ impl Food {
 
             loop {
 
-                self.x = self.random_thread.gen_range(0.0..self.snake.WINDOW_SIZE[0]);
-                self.y = self.random_thread.gen_range(0.0..self.snake.WINDOW_SIZE[1]);
+                self.x = self.random_thread.gen_range(0.0..macroquad::prelude::screen_width());
+                self.y = self.random_thread.gen_range(0.0..macroquad::prelude::screen_height());
 
                 if self.snake.positions.iter().any(|f| *f == [self.x, self.y]) {
                     continue;
@@ -122,7 +122,6 @@ struct Snake {
     color: Color,
     size: [f32; 2],
     input: Input,
-    WINDOW_SIZE: Vec<f32>,
     is_alive: bool,
 }
 
@@ -142,10 +141,6 @@ impl Default for Snake {
             },
             size: [10., 10.],
             input: Input::default(),
-            WINDOW_SIZE: vec![
-                macroquad::prelude::screen_width(),
-                macroquad::prelude::screen_height(),
-            ],
             is_alive: true,
         }
     }
@@ -187,25 +182,25 @@ impl Snake {
         if self.direction == 'l'  {
             self.x -= self.xy_diff as f32 * speed_boost;
         } else if self.direction == 'r'  {
-            self.x += self.xy_diff as f32;
+            self.x += self.xy_diff as f32 * speed_boost;
         } else if self.direction == 'u'  {
-            self.y -= self.xy_diff as f32;
+            self.y -= self.xy_diff as f32 * speed_boost;
         } else if self.direction == 'd'  {
-            self.y += self.xy_diff as f32;
+            self.y += self.xy_diff as f32 * speed_boost;
         }
 
-        if self.x > self.WINDOW_SIZE[0] {
+        if self.x > macroquad::prelude::screen_width() {
             self.x = 0.
         }
 
-        if self.y > self.WINDOW_SIZE[1] {
+        if self.y > macroquad::prelude::screen_height() {
             self.y = 0.
         }
         if self.y < 0. - self.size[1] {
-            self.y = self.WINDOW_SIZE[1]
+            self.y = macroquad::prelude::screen_height()
         }
         if self.x < 0. - self.size[0] {
-            self.x = self.WINDOW_SIZE[0]
+            self.x = macroquad::prelude::screen_width()
         }
 
         if self.positions.contains(&[self.x, self.y]) {
