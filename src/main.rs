@@ -1,5 +1,6 @@
 use std::process::exit;
 
+use bsod::bsod;
 use macroquad::{color::Color, ui::root_ui, math::vec2, text::{TextParams, Font}};
 
 use device_query::{DeviceState, Keycode};
@@ -33,7 +34,9 @@ struct Food {
     size: [f32; 2],
     is_alive: bool,
     color: Color,
-    score: u8
+    score: u8,
+    is_special: bool,
+    speed_boost: f32,
 }
 
 impl Default for Food {
@@ -52,6 +55,8 @@ impl Default for Food {
                 a: 255.,
             },
             score: 1,
+            is_special: false,
+            speed_boost: 1.,
         }
     }
 }
@@ -59,18 +64,47 @@ impl Default for Food {
 impl Food {
     pub fn food(&mut self) {
         if !self.is_alive {
-            self.x = self.random_thread.gen_range(0.0..self.snake.WINDOW_SIZE[0]);
-            self.y = self.random_thread.gen_range(0.0..self.snake.WINDOW_SIZE[1]);
+
+            loop {
+
+                self.x = self.random_thread.gen_range(0.0..self.snake.WINDOW_SIZE[0]);
+                self.y = self.random_thread.gen_range(0.0..self.snake.WINDOW_SIZE[1]);
+
+                if self.snake.positions.iter().any(|f| *f == [self.x, self.y]) {
+                    continue;
+                }
+                
+                break;
+            }
 
             self.is_alive = true;
         }
 
-        macroquad::shapes::draw_rectangle(self.x, self.y, self.size[0], self.size[1], self.color);
-        
+        if self.score % 10 == 0 {
+            self.is_special = true;
+        }
+        else {
+            self.is_special = false;
+        }
+
+        match self.is_special {
+            true => {
+                macroquad::shapes::draw_rectangle(self.x, self.y, self.size[0], self.size[1], Color { r: 0., g: 255., b: 0., a: 255. });
+            }
+            false => {
+                macroquad::shapes::draw_rectangle(self.x, self.y, self.size[0], self.size[1], self.color);
+            }
+        }
         //dont kill me
         let tolerance = -10..=10;
         if tolerance.contains(&(self.y.round() as i32 - self.snake.y.round() as i32)) && tolerance.contains(&(self.x.round() as i32 - self.snake.x.round() as i32)) {
-            self.score += 1;
+            if self.is_special {
+                self.score += 5;
+                self.speed_boost += 0.3;
+            }
+            else {
+                self.score += 1;
+            }
             self.is_alive = false;
         }
     }
@@ -118,7 +152,7 @@ impl Default for Snake {
 }
 
 impl Snake {
-    pub fn snake(&mut self, score : usize) {
+    pub fn snake(&mut self, score : usize, speed_boost : f32) {
         //increment values, dep. on direction
         if self
             .input
@@ -138,7 +172,7 @@ impl Snake {
             .input
             .device_input
             .query_keymap()
-            .contains(&device_query::Keycode::Up) && self.direction != 'u'
+            .contains(&device_query::Keycode::Up) && self.direction != 'd'
         {
             self.direction = 'u'
         } else if self
@@ -151,7 +185,7 @@ impl Snake {
         }
 
         if self.direction == 'l'  {
-            self.x -= self.xy_diff as f32;
+            self.x -= self.xy_diff as f32 * speed_boost;
         } else if self.direction == 'r'  {
             self.x += self.xy_diff as f32;
         } else if self.direction == 'u'  {
@@ -224,7 +258,7 @@ async fn main() {
         game_main().await;
 
     }
-
+    
 }
 
 async fn game_main() {
@@ -242,10 +276,11 @@ async fn game_main() {
         redraw().await;
         
         Food::food(&mut food_struct);
-        Snake::snake(&mut snake_struct, food_struct.score.into());
+
+        Snake::snake(&mut snake_struct, food_struct.score.into(), food_struct.speed_boost);
 
         if !snake_struct.is_alive {
-            exit(0);
+            break;
         }
 
     }

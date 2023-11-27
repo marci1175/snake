@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bsod = "0.1.1"
 device_query = "1.1.3"
 macroquad = "0.4.4"
 rand = "0.8.5"
