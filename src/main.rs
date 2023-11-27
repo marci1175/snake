@@ -26,13 +26,16 @@ pub fn keymap(input: Input) -> Vec<Keycode> {
 }
 #[allow(dead_code)]
 #[derive(Clone)]
+#[derive(serde::Deserialize, serde::Serialize)]
 struct Food {
     x: f32,
     y: f32,
+    #[serde(skip)]
     random_thread: ThreadRng,
     snake: Snake,
     size: [f32; 2],
     is_alive: bool,
+    #[serde(skip)]
     color: Color,
     score: u8,
     is_special: bool,
@@ -113,14 +116,17 @@ impl Food {
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 #[derive(Clone)]
+#[derive(serde::Deserialize, serde::Serialize)]
 struct Snake {
     x: f32,
     y: f32,
     xy_diff: i8,
     positions: Vec<[f32; 2]>,
     direction: char,
+    #[serde(skip)]
     color: Color,
     size: [f32; 2],
+    #[serde(skip)]
     input: Input,
     is_alive: bool,
 }
@@ -186,10 +192,10 @@ impl Snake {
             'r' => {
                 self.x += self.xy_diff as f32 * speed_boost
             }
-            'd' => {
+            'u' => {
                 self.y -= self.xy_diff as f32 * speed_boost
             }
-            'u' => {
+            'd' => {
                 self.y += self.xy_diff as f32 * speed_boost
             }
             _ => {
