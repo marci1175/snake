@@ -300,7 +300,6 @@ impl Obstacle {
     }
 
     pub fn exist(&mut self, snake: Snake, food: Food) -> &mut Obstacle {
-
         for pos in &self.pos_list {
             macroquad::shapes::draw_rectangle(
                 pos[0],
@@ -313,12 +312,11 @@ impl Obstacle {
 
         let tolerance = -self.size[0] * food.speed_boost..=self.size[1] * food.speed_boost;
 
-        if self
-            .pos_list
-            .iter()
-            .any(|f| tolerance.contains(&(f[0] - snake.positions.iter().next().unwrap()[0])) && tolerance.contains(&(f[1] - snake.positions.iter().next().unwrap()[1])) )
-        {
-            self.is_hit = true;  
+        if self.pos_list.iter().any(|f| {
+            tolerance.contains(&(f[0] - snake.positions[snake.positions.len() - 1][0]))
+                && tolerance.contains(&(f[1] - snake.positions[snake.positions.len() - 1][1]))
+        }) {
+            self.is_hit = true;
         } else {
             self.is_hit = false;
         }
@@ -359,7 +357,6 @@ async fn main() {
 }
 
 async fn game_main() {
-
     let mut obstacle: Obstacle = Obstacle::generate_obstacles(20);
 
     let mut snake_struct = Snake::default();
