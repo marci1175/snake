@@ -1,6 +1,3 @@
-use std::process::exit;
-
-use bsod::bsod;
 use macroquad::{
     color::Color,
     math::vec2,
