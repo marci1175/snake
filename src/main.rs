@@ -45,6 +45,7 @@ struct Food {
     score: u8,
     is_special: bool,
     speed_boost: f32,
+    has_been_eaten: bool,
 }
 
 impl Default for Food {
@@ -65,12 +66,14 @@ impl Default for Food {
             score: 1,
             is_special: false,
             speed_boost: 1.,
+            has_been_eaten: false,
         }
     }
 }
 
 impl Food {
     pub fn food(&mut self) {
+        self.has_been_eaten = false;
         if !self.is_alive {
             loop {
                 self.x = self
@@ -129,8 +132,10 @@ impl Food {
             if self.is_special {
                 self.score += 5;
                 self.speed_boost += 0.3;
+                self.has_been_eaten = true;
             } else {
                 self.score += 1;
+                self.has_been_eaten = true;
             }
             self.is_alive = false;
         }
@@ -282,16 +287,26 @@ impl Default for Obstacle {
 }
 
 impl Obstacle {
-    pub fn generate_obstacles(object_count: i8) -> Obstacle {
+    pub fn generate_obstacles(object_count: i16, snake: Snake) -> Obstacle {
         let mut thread_rng: ThreadRng = rand::thread_rng();
         let mut obs_list: Vec<[f32; 2]> = Vec::new();
-
-        for _ in 0..=object_count {
-            let y = thread_rng.gen_range(0.0..macroquad::prelude::screen_height());
-            let x = thread_rng.gen_range(0.0..macroquad::prelude::screen_width());
-
-            obs_list.push([x, y])
+        loop {
+            let mut x: f32 = 0.0;
+            let mut y: f32 = 0.0;
+            for _ in 0..=object_count {
+                y = thread_rng.gen_range(0.0..macroquad::prelude::screen_height());
+                x = thread_rng.gen_range(0.0..macroquad::prelude::screen_width());
+                obs_list.push([x, y]);
+            }
+            if snake.positions.iter().any(|f| *f == [x, y]) {
+                obs_list.clear();
+                continue;
+            }
+            else {
+                break;
+            }
         }
+        
 
         return Obstacle {
             pos_list: obs_list,
@@ -357,11 +372,13 @@ async fn main() {
 }
 
 async fn game_main() {
-    let mut obstacle: Obstacle = Obstacle::generate_obstacles(20);
+    
 
     let mut snake_struct = Snake::default();
 
     let mut food_struct = Food::default();
+
+    let mut obstacle = Obstacle::default();
 
     loop {
         draw_ui(&food_struct).await;
@@ -379,6 +396,10 @@ async fn game_main() {
 
         if !snake_struct.is_alive || obstacle.is_hit {
             break;
+        }
+
+        if food_struct.has_been_eaten {
+            obstacle = Obstacle::generate_obstacles(food_struct.score.into(), snake_struct.clone());
         }
     }
 }
