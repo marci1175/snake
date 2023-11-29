@@ -99,7 +99,7 @@ impl Food {
             }
         }
         //dont kill me
-        let tolerance = -10..=10;
+        let tolerance = -10 * self.speed_boost as i32..=10 * self.speed_boost as i32;
         if tolerance.contains(&(self.y.round() as i32 - self.snake.y.round() as i32)) && tolerance.contains(&(self.x.round() as i32 - self.snake.x.round() as i32)) {
             if self.is_special {
                 self.score += 5;
@@ -110,6 +110,7 @@ impl Food {
             }
             self.is_alive = false;
         }
+        
     }
 }
 
@@ -206,7 +207,6 @@ impl Snake {
         if self.x > macroquad::prelude::screen_width() {
             self.x = 0.
         }
-
         if self.y > macroquad::prelude::screen_height() {
             self.y = 0.
         }
@@ -271,6 +271,7 @@ async fn main() {
 }
 
 async fn game_main() {
+
     let mut snake_struct = Snake::default();
 
     let mut food_struct = Food::default();
@@ -284,13 +285,14 @@ async fn game_main() {
         //redraw screen
         redraw().await;
         
-        Food::food(&mut food_struct);
+        food_struct.food();
 
-        Snake::snake(&mut snake_struct, food_struct.score.into(), food_struct.speed_boost);
+        snake_struct.snake(food_struct.score.into(), food_struct.speed_boost);
 
         if !snake_struct.is_alive {
             break;
         }
 
     }
+    
 }
